@@ -13,7 +13,7 @@ pip install ppauth
 
 ## usage
 
-```
+```python
 import ppauth
 
 ppauth.auth(
