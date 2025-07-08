@@ -1,0 +1,20 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pyproxyauth"
+version = "0.1.6"
+description = "Python bindings for ProxyAuth authentication via Rust"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "Apache-2.0" }
+authors = [{ name = "vBlackOut" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: Proxy Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+]
