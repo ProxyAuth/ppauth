@@ -18,7 +18,7 @@ import ppauth
 
 ppauth.auth(
     host="127.0.0.1", port=8080,
-    username="admin", password="admin123"
+    username="admin", password="admin123",
     timezone="Europe/Paris"
 )
 
