@@ -1,6 +1,6 @@
 import unittest
 import time
-import pyproxyauth
+import ppauth
 
 class TestPyProxyAuth(unittest.TestCase):
 
@@ -12,19 +12,19 @@ class TestPyProxyAuth(unittest.TestCase):
         self.timezone = "Europe/Paris"
 
     def test_initial_auth(self):
-        pyproxyauth.auth(
+        ppauth.auth(
             host=self.host,
             port=self.port,
             username=self.username,
             password=self.password,
             timezone=self.timezone
         )
-        token = pyproxyauth.token()
+        token = ppauth.token()
         self.assertIsInstance(token, str)
         self.assertGreater(len(token), 10)
 
     def test_token_cache(self):
-        pyproxyauth.auth(
+        ppauth.auth(
             host=self.host,
             port=self.port,
             username=self.username,
@@ -32,49 +32,49 @@ class TestPyProxyAuth(unittest.TestCase):
             timezone=self.timezone
 
         )
-        token1 = pyproxyauth.token()
+        token1 = ppauth.token()
         time.sleep(1)
-        token2 = pyproxyauth.token()
+        token2 = ppauth.token()
         self.assertEqual(token1, token2)
 
     def test_token_renew(self):
-        pyproxyauth.auth(
+        ppauth.auth(
             host=self.host,
             port=self.port,
             username=self.username,
             password=self.password,
             timezone=self.timezone
         )
-        token1 = pyproxyauth.token()
-        lease = pyproxyauth.lease_token()
+        token1 = ppauth.token()
+        lease = ppauth.lease_token()
         time.sleep(lease + 1)
-        token2 = pyproxyauth.token(renew=True)
+        token2 = ppauth.token(renew=True)
         self.assertNotEqual(token1, token2)
 
     def test_token_expiration(self):
-        pyproxyauth.auth(
+        ppauth.auth(
             host=self.host,
             port=self.port,
             username=self.username,
             password=self.password,
             timezone=self.timezone
         )
-        token1 = pyproxyauth.token()
+        token1 = ppauth.token()
         time.sleep(5)
-        token2 = pyproxyauth.token()
+        token2 = ppauth.token()
         self.assertEqual(token1, token2)
 
     def test_remaining_time_decreases(self):
-        pyproxyauth.auth(
+        ppauth.auth(
             host=self.host,
             port=self.port,
             username=self.username,
             password=self.password,
             timezone=self.timezone
         )
-        time1 = pyproxyauth.lease_token()
+        time1 = ppauth.lease_token()
         time.sleep(1)
-        time2 = pyproxyauth.lease_token()
+        time2 = ppauth.lease_token()
         self.assertLess(time2, time1)
 
 if __name__ == '__main__':

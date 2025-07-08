@@ -161,7 +161,7 @@ fn lease_token() -> PyResult<i64> {
 }
 
 #[pymodule]
-fn pyproxyauth(_py: Python, m: &PyModule) -> PyResult<()> {
+fn ppauth(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(auth, m)?)?;
     m.add_function(wrap_pyfunction!(token, m)?)?;
     m.add_function(wrap_pyfunction!(lease_token, m)?)?;

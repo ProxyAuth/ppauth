@@ -937,6 +937,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ppauth"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "once_cell",
+ "pyo3",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1015,19 +1028,6 @@ dependencies = [
  "pyo3-build-config",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "pyproxyauth"
-version = "0.2.0"
-dependencies = [
- "chrono",
- "chrono-tz",
- "once_cell",
- "pyo3",
- "reqwest",
- "serde",
- "serde_json",
 ]
 
 [[package]]

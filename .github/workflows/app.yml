@@ -38,7 +38,7 @@ jobs:
         run: |
           which python
           python --version
-          pip list | grep pyproxyauth
+          pip list | grep ppauth
 
       - name: Run test script
         run: python tests/main.py

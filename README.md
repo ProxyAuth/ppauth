@@ -1,26 +1,30 @@
-# pyproxyauth 
 
+<div align="center">
+<h1>PyProxyAuth</h1>
+<img src='images/ppauth.png' width="300px" height="300px"/>
+</div>
+<br>
 A lightweight Python library to authenticate and retrieve tokens via ProxyAuth.  
 
 ## install 
 ```
-pip install pyproxyauth
+pip install ppauth
 ```
 
 ## usage
 
 ```
-import pyproxyauth
+import ppauth
 
-pyproxyauth.auth(
+ppauth.auth(
     host="127.0.0.1", port=8080,
     username="admin", password="admin123"
     timezone="Europe/Paris"
 )
 
-token = pyproxyauth.token()
-token = pyproxyauth.token(renew=True) # Automatically re-authenticates and returns a new token if the previous one has expired.
-lease_token = pyproxyauth.lease_token()
+token = ppauth.token()
+token = ppauth.token(renew=True) # Automatically re-authenticates and returns a new token if the previous one has expired.
+lease_token = ppauth.lease_token()
 
 print({"token": token, "expire_at": lease_token})
 

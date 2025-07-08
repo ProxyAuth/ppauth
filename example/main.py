@@ -1,15 +1,15 @@
-import pyproxyauth
+import ppauth
 
-pyproxyauth.auth(
+ppauth.auth(
     host="127.0.0.1", port=8080,
     username="admin", password="admin123",
     timezone="Europe/Paris"
 )
 
-token = pyproxyauth.token()
+token = ppauth.token()
 # or use renew method
-token = pyproxyauth.token(renew=True) # Automatically re-authenticates and returns a new token if the previous one has expired.
-lease_token = pyproxyauth.lease_token()
+token = ppauth.token(renew=True) # Automatically re-authenticates and returns a new token if the previous one has expired.
+lease_token = ppauth.lease_token()
 
 print({"token": token, "expire_at": lease_token})
 
