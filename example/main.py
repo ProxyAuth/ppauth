@@ -1,4 +1,5 @@
 import ppauth
+import requests
 
 ppauth.auth(
     host="127.0.0.1", port=8080,
@@ -16,3 +17,8 @@ print({"token": token, "expire_at": lease_token})
 #
 # {'token': 'J82DXAoDuzsiMAAw3V+WI+g/JfwtZJxCGE1nzDoELQ....', 'expire_at': 10799}
 #
+# Send your request
+requests.get("https://127.0.0.1:8080/app", headers={"Authorization": "Bearer {}".format(token)}, verify=False)
+
+
+

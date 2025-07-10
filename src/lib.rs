@@ -1,3 +1,7 @@
+mod session;
+mod request;
+
+use session::{SESSION, Session, AuthRequest, AuthResponse};
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 use chrono::{Utc, NaiveDateTime, TimeZone};
@@ -7,30 +11,7 @@ use pyo3::wrap_pyfunction;
 use pyo3::exceptions::PyRuntimeError;
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
-
-#[derive(Serialize, Clone)]
-struct AuthRequest {
-    username: String,
-    password: String,
-}
-
-#[derive(Deserialize, Clone)]
-struct AuthResponse {
-    token: String,
-    expires_at: String,
-}
-
-#[derive(Clone)]
-struct Session {
-    token: String,
-    expires_at: NaiveDateTime,
-    host: String,
-    port: u16,
-    auth: AuthRequest,
-    timezone: String,
-}
-
-static SESSION: Lazy<Arc<Mutex<Option<Session>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
+use request::{get, post};
 
 #[pyfunction]
 fn auth(
@@ -166,5 +147,7 @@ fn ppauth(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(token, m)?)?;
     m.add_function(wrap_pyfunction!(lease_token, m)?)?;
     m.add_function(wrap_pyfunction!(is_logged, m)?)?;
+    m.add_function(wrap_pyfunction!(get, m)?)?;
+    m.add_function(wrap_pyfunction!(post, m)?)?;
     Ok(())
 }
