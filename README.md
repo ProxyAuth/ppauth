@@ -28,23 +28,42 @@ lease_token = ppauth.lease_token()
 
 print({"token": token, "expire_at": lease_token})
 
-> {"expire_at": 16500,"token":"ZoHAauGmCyxjq6+1sfVbqy..."}
+# result
+# {"expire_at": 16500,"token":"ZoHAauGmCyxjq6+1sfVbqy..."}
 
 # for easy use method GET
 # Use the route defined in routes.yml within your backend delivery. 
 # You don't need to manually include the token in the headers it's handled automatically
 headers = {"user-agent": "ppauth/0.1.1"}
 params = {"params_key": "my_send_request_params_via_get"}
-ppauth.get("/app", headers=headers, params=params)
+
+ppauth.get(
+    "/app",          # The API route (relative path) to call on the authenticated backend
+    headers=headers, # Optional custom HTTP headers (Python dict), e.g. {"X-User": "admin"}
+    params=params,   # Optional query parameters (Python dict), e.g. {"limit": "10"}
+    verify=False,    # Disable TLS certificate verification (useful for self-signed certs)
+    timeout=5,       # Max duration (in seconds) to wait for a response before failing
+    retry=5          # Number of retry attempts if the request fails (timeout or server error)
+)
 
 # result
-> 'ok'
+# 'ok'
 
 # you are similar for POST method
 headers = {"user-agent": "ppauth/0.1.1"}
 body = {"body_key": "my_send_request_data_via_post"}
-ppauth.post("/app", headers, body)
+json = {"json_key": "my_send_request_json_data_via_post"}
+
+ppauth.post(
+    "/app",          # The API route (relative path) to call on the authenticated backend
+    headers=headers, # Optional custom HTTP headers (Python dict), e.g. {"Content-Type": "application/json"}
+    body=body,       # (If implemented) Optional raw body content (usually a string or bytes)
+    json=json,       # Optional JSON body (Python dict) that will be serialized and sent as application/json
+    timeout=5,       # Max duration (in seconds) to wait for a response before raising a timeout error
+    verify=False,    # Disable TLS certificate verification (useful for self-signed certificates)
+    retry=2          # Number of retry attempts if the request fails (e.g., timeout or 5xx server errors)
+)
 
 # result
-> 'ok'
+# 'ok'
 ```

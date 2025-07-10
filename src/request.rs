@@ -68,7 +68,7 @@ fn make_request(
 
     let url = format!("https://{}:{}/{}", session.host, session.port, path.trim_start_matches('/'));
 
-    let verify_tls = verify.unwrap_or(false);
+    let verify_tls = verify.unwrap_or(true);
     let timeout_duration = Duration::from_secs(timeout.unwrap_or(10));
     let max_retries = retry.unwrap_or(0);
 
@@ -149,7 +149,16 @@ fn make_request(
     )))
 }
 
-#[pyfunction]
+#[pyfunction(
+signature = (
+    path,
+    headers = None,
+    params = None,
+    timeout = None,
+    verify = None,
+    retry = None
+)
+)]
 pub fn get(
     _py: Python,
     path: String,
@@ -162,7 +171,16 @@ pub fn get(
     make_request("GET", &path, headers, params, None, timeout, verify, retry)
 }
 
-#[pyfunction]
+#[pyfunction(
+signature = (
+    path,
+    headers = None,
+    json = None,
+    timeout = None,
+    verify = None,
+    retry = None
+)
+)]
 pub fn post(
     _py: Python,
     path: String,
