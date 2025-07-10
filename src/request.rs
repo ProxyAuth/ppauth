@@ -2,6 +2,7 @@ use pyo3::types::PyDict;
 use pyo3::{pyfunction, PyResult, Python};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::PyAny;
+use crate::state::ALLOW_AUTO_RENEW;
 use reqwest::blocking::{Client, Response};
 use chrono::Utc;
 use std::thread::sleep;
@@ -56,17 +57,59 @@ fn make_request(
     verify: Option<bool>,
     retry: Option<u32>,
 ) -> PyResult<String> {
-    let session = {
+
+    let now = Utc::now().naive_utc();
+    let grace_period = chrono::Duration::seconds(0);
+
+    let mut session = {
         let stored = SESSION.lock().unwrap();
         stored.clone().ok_or_else(|| PyRuntimeError::new_err("Not authenticated. Call auth() first."))?
     };
 
-    let now = Utc::now().naive_utc();
-    if session.expires_at <= now {
-        return Err(PyRuntimeError::new_err("Token expired. Call token(renew=True)."));
+    let expired = session.expires_at <= now + grace_period;
+
+    let auto_allowed = {
+        let flag = ALLOW_AUTO_RENEW.lock().unwrap();
+        *flag
+    };
+
+    if expired {
+
+        if auto_allowed {
+            let renew_result = Python::with_gil(|py| {
+                let ppauth = py.import("ppauth")
+                .map_err(|e| PyRuntimeError::new_err(format!("Failed to import ppauth: {}", e)))?;
+
+                ppauth.call_method1("token", (true,))
+                .map(|_| ())
+                .map_err(|e| PyRuntimeError::new_err(format!("Token renewal failed: {}", e)))
+            });
+
+            if let Err(e) = renew_result {
+                return Err(e);
+            }
+
+            session = {
+                let stored = SESSION.lock().unwrap();
+                stored.clone().ok_or_else(|| PyRuntimeError::new_err("Session missing after token renewal"))?
+            };
+
+            if session.expires_at <= now {
+                return Err(PyRuntimeError::new_err("Token still invalid after renewal"));
+            }
+        } else {
+            return Err(PyRuntimeError::new_err(
+                "Token expired. Please call .token(renew=True) first to enable automatic session renewal.",
+            ));
+        }
     }
 
-    let url = format!("https://{}:{}/{}", session.host, session.port, path.trim_start_matches('/'));
+    let url = format!(
+        "https://{}:{}/{}",
+        session.host,
+        session.port,
+        path.trim_start_matches('/')
+    );
 
     let verify_tls = verify.unwrap_or(true);
     let timeout_duration = Duration::from_secs(timeout.unwrap_or(10));
@@ -87,8 +130,10 @@ fn make_request(
             _ => return Err(PyRuntimeError::new_err("Unsupported HTTP method")),
         };
 
+        // Always add token
         req = req.header("Authorization", format!("Bearer {}", session.token));
 
+        // Add user headers, excluding Authorization
         if let Some(h) = headers {
             for (key, value) in h {
                 let key_str = key.extract::<String>()?;
@@ -100,7 +145,7 @@ fn make_request(
             }
         }
 
-
+        // Query parameters
         if let Some(p) = params {
             let mut query = vec![];
             for (key, value) in p {
@@ -111,6 +156,7 @@ fn make_request(
             req = req.query(&query);
         }
 
+        // JSON body
         if let Some(j) = json {
             let json_value = pydict_to_json(j)?;
             req = req.json(&json_value);
@@ -119,9 +165,9 @@ fn make_request(
         match req.send() {
             Ok(res) => {
                 let status = res.status();
-                let text = res.text().map_err(|e| {
-                    PyRuntimeError::new_err(format!("Read failed: {}", e))
-                })?;
+                let text = res
+                .text()
+                .map_err(|e| PyRuntimeError::new_err(format!("Read failed: {}", e)))?;
 
                 if status.is_success() {
                     return Ok(text);
@@ -129,7 +175,10 @@ fn make_request(
                     sleep(Duration::from_millis(5));
                     continue;
                 } else {
-                    return Err(PyRuntimeError::new_err(format!("Request failed: {} - {}", status, text)));
+                    return Err(PyRuntimeError::new_err(format!(
+                        "Request failed: {} - {}",
+                        status, text
+                    )));
                 }
             }
             Err(err) => {
@@ -145,7 +194,9 @@ fn make_request(
     Err(PyRuntimeError::new_err(format!(
         "Request failed after {} attempt(s): {:?}",
         max_retries + 1,
-        last_err.map(|e| e.to_string()).unwrap_or_else(|| "Unknown error".to_string())
+        last_err
+        .map(|e| e.to_string())
+        .unwrap_or_else(|| "Unknown error".to_string())
     )))
 }
 
