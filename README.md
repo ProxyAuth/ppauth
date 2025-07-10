@@ -1,7 +1,7 @@
 
 <div align="center">
 <h1>PyProxyAuth</h1>
-<img src='images/ppauth.png' width="300px" height="300px"/>
+<img src='https://github.com/ProxyAuth/ppauth/raw/main/images/ppauth.png' width="300px" height="300px"/>
 </div>
 <br>
 A lightweight Python library to authenticate and retrieve tokens via ProxyAuth.  
