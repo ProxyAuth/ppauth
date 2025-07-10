@@ -95,7 +95,6 @@ fn token(py: Python, renew: Option<bool>) -> PyResult<PyObject> {
     let renew_mode = renew.is_some();
     let renew_requested = renew.unwrap_or(false);
 
-    // Set the renew flag in all cases
     if let Some(r) = renew {
         let mut flag = crate::state::ALLOW_AUTO_RENEW.lock().unwrap();
         *flag = r;
@@ -106,27 +105,32 @@ fn token(py: Python, renew: Option<bool>) -> PyResult<PyObject> {
         if let Some(session) = &*stored {
             if session.expires_at > now {
                 if renew_mode {
-                    return Ok(true.into_py(py)); // token valid, and renew flag set
+                    return Ok(true.into_py(py)); // Just status
                 } else {
                     return Ok(session.token.clone().into_py(py)); // return token
                 }
             } else if renew_mode && !renew_requested {
-                return Ok(false.into_py(py)); // expired, but renew=False => just return false
+                return Ok(false.into_py(py));
             } else if !renew_mode {
-                return Err(PyRuntimeError::new_err(
-                    "Token expired. Call .token(renew=True) first to enable automatic renewal.",
-                ));
+                let auto = *crate::state::ALLOW_AUTO_RENEW.lock().unwrap();
+                if auto {
+                    // try renew auto auth method
+                } else {
+                    return Err(PyRuntimeError::new_err(
+                        "Token expired. Call .token(renew=True) first to enable automatic renewal.",
+                    ));
+                }
             }
         } else if renew_mode && !renew_requested {
-            return Ok(false.into_py(py)); // renew=False, no session => return false
+            return Ok(true.into_py(py));
         } else if renew_mode {
-            return Ok(false.into_py(py)); // renew=True but no session => return false
+            // renew = true, no session continue to auth
         } else {
             return Err(PyRuntimeError::new_err("Not authenticated. Call auth() first."));
         }
     }
 
-    // renew == Some(true), session expired or not found
+    // renew Authentication
     let (host, port, username, password, timezone) = {
         let stored = SESSION.lock().unwrap();
         if let Some(session) = &*stored {
@@ -149,12 +153,17 @@ fn token(py: Python, renew: Option<bool>) -> PyResult<PyObject> {
     let stored = SESSION.lock().unwrap();
     if let Some(session) = &*stored {
         if session.expires_at > now {
-            return Ok(true.into_py(py)); // token successfully renewed
+            if renew_mode {
+                return Ok(true.into_py(py));
+            } else {
+                return Ok(session.token.clone().into_py(py)); // Token auto-renew
+            }
         }
     }
 
-    Ok(false.into_py(py)) // renewal failed
+    Ok(false.into_py(py))
 }
+
 
 #[pyfunction]
 fn lease_token() -> PyResult<i64> {
