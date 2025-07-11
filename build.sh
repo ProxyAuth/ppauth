@@ -10,7 +10,7 @@ for v in "${versions[@]}"; do
     MATURIN="$HOME/.pyenv/versions/$v/bin/maturin"
 
     if [ ! -x "$PYTHON" ]; then
-        echo "❌ Python $v not found at $PYTHON"
+        echo "Python $v not found at $PYTHON"
         continue
     fi
 

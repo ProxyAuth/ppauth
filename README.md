@@ -2,6 +2,7 @@
 <div align="center">
 <h1>PyProxyAuth</h1>
 <img src='https://github.com/ProxyAuth/ppauth/raw/main/images/ppauth.png' width="300px" height="300px"/>
+<img src='https://github.com/ProxyAuth/ppauth/raw/main/images/totp_client.png' width="300px" height="300px"/>
 </div>
 <br>
 A lightweight Python library to authenticate and retrieve tokens via ProxyAuth.  
@@ -19,7 +20,13 @@ import ppauth
 ppauth.auth(
     host="127.0.0.1", port=8080,
     username="admin", password="admin123",
-    timezone="Europe/Paris"
+    
+    # Optional TOTP code (used if two-factor authentication is enabled).
+    # Note: If using TOTP, the server should issue a token with a minimum 1-day expiration.
+    # As a developer, you should provide a new TOTP code each time the token expires.
+    totp="56845",
+    
+    timezone="Europe/Paris" 
 )
 
 token = ppauth.token()

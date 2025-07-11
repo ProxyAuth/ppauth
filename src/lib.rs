@@ -21,6 +21,7 @@ fn auth(
     port: u16,
     username: String,
     password: String,
+    totp: String,
     timezone: Option<String>,
 ) -> PyResult<()> {
     let client = Client::builder()
@@ -29,7 +30,16 @@ fn auth(
     .map_err(|e| PyRuntimeError::new_err(format!("Client error: {}", e)))?;
 
     let full_url = format!("https://{}:{}/auth", host.trim_end_matches('/'), port);
-    let body = AuthRequest { username, password };
+
+    // Préparation du corps JSON avec ou sans le TOTP
+    let mut body = serde_json::json!({
+        "username": username,
+        "password": password,
+    });
+
+    if !totp.trim().is_empty() && totp.trim().to_lowercase() != "null" {
+        body["totp_code"] = serde_json::Value::String(totp);
+    }
 
     let res = client
     .post(&full_url)
@@ -69,11 +79,11 @@ fn auth(
     let mut stored = SESSION.lock().unwrap();
     *stored = Some(Session {
         token: auth_response.token.clone(),
-        expires_at: expiry_utc,
-        host,
-        port,
-        auth: body,
-        timezone: tz_name,
+                   expires_at: expiry_utc,
+                   host,
+                   port,
+                   auth: AuthRequest { username, password },
+                   timezone: tz_name,
     });
 
     Ok(())
