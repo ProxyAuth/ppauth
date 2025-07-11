@@ -4,13 +4,14 @@ build-backend = "maturin"
 
 [project]
 name = "ppauth"
-version = "0.1.8"
+version = "0.1.10"
 description = "Python bindings for ProxyAuth authentication via Rust"
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
     "requests",
     "qrcode",
+    "ppauth-cli"
 ]
 license = { text = "Apache-2.0" }
 authors = [{ name = "vBlackOut" }]

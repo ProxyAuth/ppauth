@@ -21,7 +21,7 @@ fn auth(
     port: u16,
     username: String,
     password: String,
-    totp: String,
+    totp: Option<String>,
     timezone: Option<String>,
 ) -> PyResult<()> {
     let client = Client::builder()
@@ -31,15 +31,18 @@ fn auth(
 
     let full_url = format!("https://{}:{}/auth", host.trim_end_matches('/'), port);
 
-    // Préparation du corps JSON avec ou sans le TOTP
-    let mut body = serde_json::json!({
-        "username": username,
-        "password": password,
-    });
-
-    if !totp.trim().is_empty() && totp.trim().to_lowercase() != "null" {
-        body["totp_code"] = serde_json::Value::String(totp);
-    }
+    // Créer dynamiquement le body selon la présence de TOTP
+    let body = match totp.as_deref().map(str::trim).filter(|s| !s.is_empty() && *s != "null") {
+        Some(code) => serde_json::json!({
+            "username": username,
+            "password": password,
+            "totp_code": code
+        }),
+        None => serde_json::json!({
+            "username": username,
+            "password": password
+        }),
+    };
 
     let res = client
     .post(&full_url)
@@ -61,7 +64,10 @@ fn auth(
     let auth_response: AuthResponse = serde_json::from_str(&text)
     .map_err(|e| PyRuntimeError::new_err(format!("Invalid JSON: {}", e)))?;
 
-    let expiry_naive = NaiveDateTime::parse_from_str(&auth_response.expires_at, "%Y-%m-%d %H:%M:%S")
+    let expiry_naive = NaiveDateTime::parse_from_str(
+        &auth_response.expires_at,
+        "%Y-%m-%d %H:%M:%S",
+    )
     .map_err(|e| PyRuntimeError::new_err(format!("Invalid expires_at format: {}", e)))?;
 
     let tz_name = timezone.unwrap_or_else(|| "UTC".to_string());
@@ -88,6 +94,7 @@ fn auth(
 
     Ok(())
 }
+
 
 #[pyfunction]
 fn is_logged() -> bool {
@@ -156,7 +163,7 @@ fn token(py: Python, renew: Option<bool>) -> PyResult<PyObject> {
         }
     };
 
-    if auth(host, port, username, password, String::new(), timezone).is_err() {
+    if auth(host, port, username, password, None, timezone).is_err() {
         return Ok(false.into_py(py));
     }
 
