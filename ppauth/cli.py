@@ -20,17 +20,15 @@ def generate_qrcode(data: str):
     qr.make(fit=True)
 
     print("\nScan the QR code above to register your TOTP secret.\n")
-
     qr.print_ascii(invert=True)
 
-
-def generate_totp_qrcode(username: str, password: str):
-    url = "https://127.0.0.1:8080/adm/auth/totp/get"
+def generate_totp_qrcode(host: str, port: int, username: str, password: str, verify_tls: bool):
+    url = f"https://{host}:{port}/adm/auth/totp/get"
     try:
         response = requests.post(url, json={
             "username": username,
             "password": password
-        }, verify=False)
+        }, verify=verify_tls)
 
         if not response.ok:
             print(f"Error: Server returned {response.status_code}")
@@ -58,11 +56,15 @@ def main():
     otp_cmd = otp_parser.add_parser("otp", help="Generate TOTP QR code")
     otp_cmd.add_argument("--username", required=True, help="Username")
     otp_cmd.add_argument("--password", required=True, help="Password")
+    otp_cmd.add_argument("--host", required=True, help="Hostname (e.g. 127.0.0.1)")
+    otp_cmd.add_argument("--port", type=int, required=True, help="Port (e.g. 8080)")
+    otp_cmd.add_argument("--no-tls-verify", action="store_true", help="Disable TLS certificate verification")
 
     args = parser.parse_args()
 
     if args.command == "registry" and args.action == "otp":
-        generate_totp_qrcode(args.username, args.password)
+        verify_tls = not args.no_tls_verify
+        generate_totp_qrcode(args.host, args.port, args.username, args.password, verify_tls)
     else:
         parser.print_help()
 

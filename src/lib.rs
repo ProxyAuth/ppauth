@@ -156,7 +156,7 @@ fn token(py: Python, renew: Option<bool>) -> PyResult<PyObject> {
         }
     };
 
-    if auth(host, port, username, password, timezone).is_err() {
+    if auth(host, port, username, password, String::new(), timezone).is_err() {
         return Ok(false.into_py(py));
     }
 
