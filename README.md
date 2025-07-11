@@ -2,7 +2,8 @@
 <div align="center">
 <h1>PyProxyAuth</h1>
 <img src='https://github.com/ProxyAuth/ppauth/raw/main/images/ppauth.png' width="300px" height="300px"/><br>
-<img src='https://github.com/ProxyAuth/ppauth/raw/main/images/totp_client.png' width="500px" height="500px"/>
+<h5>ppauth-cli totp request</h5>
+<img src='https://github.com/ProxyAuth/ppauth/raw/main/images/totp_client.png' width="500px" height="500px"/><br>
 </div>
 <br>
 A lightweight Python library to authenticate and retrieve tokens via ProxyAuth.  
